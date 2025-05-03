@@ -34,7 +34,7 @@ public class Window extends JFrame {
         for(int i = 0; i < rows * cols; i++) {
             JButton button = new JButton();
             button.setPreferredSize(new Dimension(50, 50));
-            button.setBackground(Color.GRAY);
+            button.setIcon(new ImageIcon("/home/mishgun/Projects/minesweeper/src/images/unopened_square.svg.png"));
             addActionForButton(button);
             gridPanel.add(button);
         }
@@ -48,7 +48,7 @@ public class Window extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e)) {
-                    b.setBackground(null);
+                    b.setIcon(new ImageIcon("/home/mishgun/Projects/minesweeper/src/images/empty_fill.svg.png"));
                 } else if(SwingUtilities.isRightMouseButton(e)){
                     b.setIcon(new ImageIcon("/home/mishgun/Projects/minesweeper/src/images/Minesweeper_flag.svg.png"));
                 }
