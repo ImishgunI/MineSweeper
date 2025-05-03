@@ -5,6 +5,6 @@ public class MineSweeper
     public static void main( String[] args )
     {
         Application app = new Application();
-        app.drawArea(8, 8);
+        app.drawArea(40, 40);
     }
 }
