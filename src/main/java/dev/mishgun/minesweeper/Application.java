@@ -14,9 +14,11 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 public class Application extends JFrame {
-
+    private final int gapBetweenButton = 8;
+    private final int buttonSize = 30;
     private JPanel panel;
     private URL imageURL;
+
     public Application() {
         setTitle("MineSweeper");
         setVisible(true);
@@ -26,15 +28,16 @@ public class Application extends JFrame {
     }
 
     public void drawArea(int rows, int cols) {
-        JPanel gridPanel = new JPanel(new GridLayout(rows, cols, 8, 8));
+        JPanel gridPanel = new JPanel(new GridLayout(rows, cols, gapBetweenButton, gapBetweenButton));
         gridPanel.setPreferredSize(new Dimension(
-            cols * (78),
-            rows * (78)
+            cols * (buttonSize + gapBetweenButton),
+            rows * (buttonSize + gapBetweenButton)
         ));
+        gridPanel.revalidate();
         imageURL = getClass().getClassLoader().getResource("images/unopened_square.svg.png");
         for(int i = 0; i < rows * cols; i++) {
             JButton button = new JButton();
-            button.setPreferredSize(new Dimension(50, 50));
+            button.setPreferredSize(new Dimension(buttonSize, buttonSize));
             button.setIcon(new ImageIcon(imageURL));
             addActionForButton(button);
             gridPanel.add(button);
@@ -58,4 +61,5 @@ public class Application extends JFrame {
             }
         });
     }
+
 }
