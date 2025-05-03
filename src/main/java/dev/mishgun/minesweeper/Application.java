@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -15,10 +16,9 @@ import javax.swing.SwingUtilities;
 public class Application extends JFrame {
 
     private JPanel panel;
-
+    private URL imageURL;
     public Application() {
         setTitle("MineSweeper");
-        setSize(1280, 720);
         setVisible(true);
         panel = new JPanel(new FlowLayout());
         panel.setBackground(Color.DARK_GRAY);
@@ -31,10 +31,11 @@ public class Application extends JFrame {
             cols * (78),
             rows * (78)
         ));
+        imageURL = getClass().getClassLoader().getResource("images/unopened_square.svg.png");
         for(int i = 0; i < rows * cols; i++) {
             JButton button = new JButton();
             button.setPreferredSize(new Dimension(50, 50));
-            button.setIcon(new ImageIcon("/home/mishgun/Projects/minesweeper/src/images/unopened_square.svg.png"));
+            button.setIcon(new ImageIcon(imageURL));
             addActionForButton(button);
             gridPanel.add(button);
         }
@@ -48,9 +49,11 @@ public class Application extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e)) {
-                    b.setIcon(new ImageIcon("/home/mishgun/Projects/minesweeper/src/images/empty_fill.svg.png"));
+                    imageURL = getClass().getClassLoader().getResource("images/empty_fill.svg.png");
+                    b.setIcon(new ImageIcon(imageURL));
                 } else if(SwingUtilities.isRightMouseButton(e)){
-                    b.setIcon(new ImageIcon("/home/mishgun/Projects/minesweeper/src/images/Minesweeper_flag.svg.png"));
+                    imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag.svg.png");
+                    b.setIcon(new ImageIcon(imageURL));
                 }
             }
         });
