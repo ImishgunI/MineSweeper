@@ -4,6 +4,7 @@ public class MineSweeper
 {
     public static void main( String[] args )
     {
-        new Window();
+        Window window = new Window();
+        window.drawArea(8, 8);
     }
 }
