@@ -8,6 +8,8 @@ import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -20,6 +22,7 @@ public class Application extends JFrame {
     private JPanel panel;
     private URL imageURL;
     private ArrayList<JButton> buttons = new ArrayList<JButton>();
+    private HashSet<Integer> hs = new HashSet<>();
 
     public Application() {
         setTitle("MineSweeper");
@@ -59,7 +62,7 @@ public class Application extends JFrame {
         b.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if(SwingUtilities.isLeftMouseButton(e) && b.getClientProperty("flag") == null) {
+                if(SwingUtilities.isLeftMouseButton(e)) {
                     if(b.getClientProperty("mine") != null) {
                         imageURL = getClass().getClassLoader().getResource("images/fail" + size);
                         b.setIcon(new ImageIcon(imageURL));
@@ -68,21 +71,33 @@ public class Application extends JFrame {
                         // } catch(Exception ex) {
                         //     System.err.println(ex.getMessage());
                         // }
+                        b.putClientProperty("mine_failed", true);
+                        b.putClientProperty("unopened", null);
                     } else {
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
                         b.setIcon(new ImageIcon(imageURL));
                         b.putClientProperty("empty_fill", true);
+                        b.putClientProperty("unopened", null);
                     }
                 } else if(SwingUtilities.isRightMouseButton(e)) {
-                    if(b.getClientProperty("empty_fill") == null || (b.getClientProperty("unopened") != null 
-                        && b.getClientProperty("mine") != null)) {
-                            imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag" + size);
+                    if(b.getClientProperty("flag") == null) {
+                        if(b.getClientProperty("empty_fill") == null || (b.getClientProperty("unopened") != null 
+                            && b.getClientProperty("mine") != null)) {
+                                imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag" + size);
+                                b.setIcon(new ImageIcon(imageURL));
+                                b.putClientProperty("flag", true);
+                                b.putClientProperty("unopened", null);
+                                b.putClientProperty("mine_failed", null);
+                        }
+                    } else if(b.getClientProperty("flag") != null) {
+                        if(b.getClientProperty("empty_fill") == null && b.getClientProperty("unopened") == null
+                            && (b.getClientProperty("mine") == null || b.getClientProperty("mine_failed") == null) && b.getClientProperty("flag") != null){
+                            imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
                             b.setIcon(new ImageIcon(imageURL));
-                            b.putClientProperty("flag", true);
-                    } else if(b.getClientProperty("flag") != null && (b.getClientProperty("empty_fill") == null)){
-                        imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
-                        b.setIcon(new ImageIcon(imageURL));
-                        b.putClientProperty("unopened", true);
+                            b.putClientProperty("unopened", true);
+                            b.putClientProperty("flag", null);
+                            b.putClientProperty("empty_fill", null);
+                        }
                     }
                 }
             }
@@ -119,23 +134,27 @@ public class Application extends JFrame {
         String size = chooseAnImage(buttonSize);
         float difficult = (float) (0.156 + (0.206 - 0.156) * ((rows * cols - 64) / (480.0 - 64)));
         ArrayList<JButton> shuffled = new ArrayList<JButton>(Arrays.asList(new JButton[rows * cols]));
-        fillArray(list, shuffled);
+        Collections.copy(shuffled, list);
+        Collections.shuffle(shuffled);
         Random r = new Random();
         byte amount = (byte)(Math.round(rows * cols * difficult));
         imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
-        for (int i = 0; i < amount + 1; i++) {
+        for (int i = 0; i < amount; i++) {
+            int index = r.nextInt(list.size() - 1);
+            if(checkRandomIndex(index) == false) index = r.nextInt(list.size() - 1);
             JButton b = new JButton(new ImageIcon(imageURL));
             b.putClientProperty("mine", true);
-            int value = r.nextInt(list.size() - 1);
-            shuffled.set(value, b);
+            shuffled.set(index, b);
         }
         return shuffled;
     }
 
-    private void fillArray(ArrayList<JButton> list, ArrayList<JButton> shuffled) {
-        for (int i = 0; i < list.size(); i++) {
-            shuffled.set(i, list.get(i));
+    private boolean checkRandomIndex(int index) {
+        if(hs.contains(index)) {
+            return false;
         }
+        hs.add(index);
+        return true;
     }
 
     private void addButtonsAtPanel(ArrayList<JButton> buttons, JPanel gridPanel) {
