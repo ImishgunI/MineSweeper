@@ -49,7 +49,7 @@ public class Application extends JFrame {
             button.putClientProperty("unopened", true);
             buttons.add(button);
         }
-        ArrayList <JButton> shuffled = addBombAtButton(buttons, rows, cols, buttonSize);
+        ArrayList <JButton> shuffled = addBombAtButton(buttons, rows, cols);
         addButtonsAtPanel(shuffled, gridPanel);
         setActionOnButton(shuffled, buttonSize);
         panel.add(gridPanel);
@@ -62,7 +62,7 @@ public class Application extends JFrame {
         b.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if(SwingUtilities.isLeftMouseButton(e)) {
+                if(SwingUtilities.isLeftMouseButton(e) && b.getClientProperty("flag") == null) {
                     if(b.getClientProperty("mine") != null) {
                         imageURL = getClass().getClassLoader().getResource("images/fail" + size);
                         b.setIcon(new ImageIcon(imageURL));
@@ -130,23 +130,26 @@ public class Application extends JFrame {
         return (buttonSize == 30) ? size_30 : (buttonSize == 50) ? size_50 : (buttonSize == 70) ? size_70 : size_50;
     }
 
-    private ArrayList<JButton> addBombAtButton(ArrayList<JButton> list, int rows, int cols, final int buttonSize) throws IndexOutOfBoundsException {
-        String size = chooseAnImage(buttonSize);
-        float difficult = (float) (0.156 + (0.206 - 0.156) * ((rows * cols - 64) / (480.0 - 64)));
+    private ArrayList<JButton> addBombAtButton(ArrayList<JButton> list, int rows, int cols) throws IndexOutOfBoundsException { 
+        float difficult = (float)(0.156 + (0.206 - 0.156) * ((rows * cols - 64) / (480.0 - 64)));
+        if(rows == 16) difficult = (float)0.156;
         ArrayList<JButton> shuffled = new ArrayList<JButton>(Arrays.asList(new JButton[rows * cols]));
         Collections.copy(shuffled, list);
         Collections.shuffle(shuffled);
         Random r = new Random();
         byte amount = (byte)(Math.round(rows * cols * difficult));
-        imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
         for (int i = 0; i < amount; i++) {
-            int index = r.nextInt(list.size() - 1);
-            if(checkRandomIndex(index) == false) index = r.nextInt(list.size() - 1);
-            JButton b = new JButton(new ImageIcon(imageURL));
+            int index = getRandomNumber(r, list.size() - 1);
+            if(checkRandomIndex(index) == false) index = getRandomNumber(r, list.size() - 1);
+            JButton b = shuffled.get(index);
             b.putClientProperty("mine", true);
             shuffled.set(index, b);
         }
         return shuffled;
+    }
+
+    private int getRandomNumber(Random r, int size) {
+        return r.nextInt(size);
     }
 
     private boolean checkRandomIndex(int index) {
