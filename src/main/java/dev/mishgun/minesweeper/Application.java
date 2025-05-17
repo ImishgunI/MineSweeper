@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -55,13 +56,13 @@ public class Application extends JFrame {
         ArrayList <JButton> shuffled = addBombAtButton(buttons, rows, cols);
         addButtonsAtPanel(shuffled, gridPanel);
         addNumbersAtGrid(shuffled, rows, cols);
-        setActionOnButton(shuffled, buttonSize);
+        setActionOnButton(shuffled, buttonSize, rows, cols);
         panel.add(gridPanel);
         pack();
         setVisible(true);
     }
 
-    private void addActionForButton(JButton b, final int buttonSize) {
+    private void addActionForButton(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols) {
         String size = chooseAnImage(buttonSize);
         b.addMouseListener(new MouseAdapter() {
             @Override
@@ -83,6 +84,15 @@ public class Application extends JFrame {
                         b.setIcon(new ImageIcon(imageURL));
                         b.putClientProperty("empty_fill", null);
                         b.putClientProperty("unopened", null);
+                    } else if(b.getClientProperty("zero") != null) {
+                        openFillsWithBFS(b, list, rows, cols);
+                        imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
+                        for(int i = 0; i < zerosButtons.size(); i++) {
+                            JButton btn = zerosButtons.poll();
+                            btn.setIcon(new ImageIcon(imageURL));
+                            btn.putClientProperty("unopened", null);
+                            btn.putClientProperty("zero", null);
+                        }
                     } else {
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
                         b.setIcon(new ImageIcon(imageURL));
@@ -176,9 +186,9 @@ public class Application extends JFrame {
         }
     }
 
-    private void setActionOnButton(ArrayList <JButton> shuffled, final int buttonSize) {
+    private void setActionOnButton(ArrayList <JButton> shuffled, final int buttonSize, int rows, int cols) {
         for(int i = 0; i < shuffled.size(); i++) {
-            addActionForButton(shuffled.get(i), buttonSize);
+            addActionForButton(shuffled.get(i), buttonSize, shuffled, rows, cols);
         }
     }
 
@@ -186,12 +196,14 @@ public class Application extends JFrame {
         JButton b = null;
         for(int i = 0; i < list.size() - 1; i++) {
             int row = i / cols;
-            int col = i % cols;
+            int col = i % cols; 
             b = list.get(i);
             if(b.getClientProperty("mine") == null) {
                 int count = calculateNumberForButton(row, col, rows, cols, list);
                 if(count != 0) {
                     b.putClientProperty("number", count);
+                } else {
+                    b.putClientProperty("zero", 0);
                 }
             }
         }
@@ -216,6 +228,44 @@ public class Application extends JFrame {
             }
         }
         return count;
+    }
+
+    private Boolean openFillsWithBFS(JButton start, ArrayList<JButton> list, int rows, int cols) {
+        HashMap<JButton, Boolean> visited = new HashMap<>();
+        int j = 0, row = 0, col = 0, nc = 0, nr = 0, index = 0;
+        JButton neighbor = null;
+        for(int i = 0; i < list.size(); i++) visited.put(list.get(i), false);
+        zerosButtons.add(start);
+        while(!zerosButtons.isEmpty()) {
+            JButton b = zerosButtons.poll();
+            if(b.getClientProperty("number") != null) {
+                return true;
+            }
+            visited.put(b, true);
+            j = list.indexOf(b);
+            for(; j < list.size(); j++) {
+                row = j / cols;
+                col = j % cols;
+                for(int dr = -1; dr <= 1; dr++) {
+                    for(int dc = -1; dc <= 1; dc++) {
+                        if(dr == 0 && dc == 0) continue;
+                        nr = row + dr;
+                        nc = col + dc;
+                        if(nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                            index = nr * cols + nc;
+                            neighbor = list.get(index);
+                            if(neighbor.getClientProperty("number") == null && neighbor.getClientProperty("zero") != null) {
+                                if(visited.get(neighbor) == false) {
+                                    zerosButtons.add(neighbor);
+                                    visited.put(neighbor, true);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private URL getImageNumber(int count, int size) {
