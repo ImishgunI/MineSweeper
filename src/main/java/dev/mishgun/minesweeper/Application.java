@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
+
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -26,7 +27,7 @@ public class Application extends JFrame {
     private URL imageURL;
     private ArrayList<JButton> buttons = new ArrayList<JButton>();
     private HashSet<Integer> hs = new HashSet<>();
-    private Queue<JButton> zerosButtons = new LinkedList<>();
+    private int buttonSize;
 
     public Application() {
         setTitle("MineSweeper");
@@ -37,7 +38,7 @@ public class Application extends JFrame {
     }
 
     public void drawArea(int rows, int cols) {
-        final int buttonSize = setButtonSize(rows, cols);
+        buttonSize = setButtonSize(rows, cols);
         JPanel gridPanel = new JPanel(new GridLayout(rows, cols, gapBetweenButton, gapBetweenButton));
         gridPanel.setPreferredSize(new Dimension(
             cols * (buttonSize + gapBetweenButton),
@@ -85,14 +86,8 @@ public class Application extends JFrame {
                         b.putClientProperty("empty_fill", null);
                         b.putClientProperty("unopened", null);
                     } else if(b.getClientProperty("zero") != null) {
-                        openFillsWithBFS(b, list, rows, cols);
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
-                        for(int i = 0; i < zerosButtons.size(); i++) {
-                            JButton btn = zerosButtons.poll();
-                            btn.setIcon(new ImageIcon(imageURL));
-                            btn.putClientProperty("unopened", null);
-                            btn.putClientProperty("zero", null);
-                        }
+                        openFillsWithBFS(b, list, rows, cols, imageURL);                        
                     } else {
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
                         b.setIcon(new ImageIcon(imageURL));
@@ -194,7 +189,7 @@ public class Application extends JFrame {
 
     private void addNumbersAtGrid(ArrayList<JButton> list, int rows, int cols) {
         JButton b = null;
-        for(int i = 0; i < list.size() - 1; i++) {
+        for(int i = 0; i < list.size(); i++) {
             int row = i / cols;
             int col = i % cols; 
             b = list.get(i);
@@ -230,42 +225,56 @@ public class Application extends JFrame {
         return count;
     }
 
-    private Boolean openFillsWithBFS(JButton start, ArrayList<JButton> list, int rows, int cols) {
+    private void openFillsWithBFS(JButton start, ArrayList<JButton> list, int rows, int cols, URL image) {
+        Queue<JButton> zerosButtons = new LinkedList<>();
         HashMap<JButton, Boolean> visited = new HashMap<>();
+        ArrayList<JButton> vNumber = new ArrayList<>();
         int j = 0, row = 0, col = 0, nc = 0, nr = 0, index = 0;
         JButton neighbor = null;
         for(int i = 0; i < list.size(); i++) visited.put(list.get(i), false);
         zerosButtons.add(start);
+        visited.put(start, true);
         while(!zerosButtons.isEmpty()) {
             JButton b = zerosButtons.poll();
-            if(b.getClientProperty("number") != null) {
-                return true;
+            if(b.getClientProperty("zero") != null) {
+                b.setIcon(new ImageIcon(image));
+                b.putClientProperty("empty_fill", true);
+                b.putClientProperty("zero", null);
+                b.putClientProperty("unopened", null);
             }
-            visited.put(b, true);
             j = list.indexOf(b);
-            for(; j < list.size(); j++) {
-                row = j / cols;
-                col = j % cols;
-                for(int dr = -1; dr <= 1; dr++) {
-                    for(int dc = -1; dc <= 1; dc++) {
-                        if(dr == 0 && dc == 0) continue;
-                        nr = row + dr;
-                        nc = col + dc;
-                        if(nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                            index = nr * cols + nc;
-                            neighbor = list.get(index);
-                            if(neighbor.getClientProperty("number") == null && neighbor.getClientProperty("zero") != null) {
-                                if(visited.get(neighbor) == false) {
-                                    zerosButtons.add(neighbor);
-                                    visited.put(neighbor, true);
-                                }
+            row = j / cols;
+            col = j % cols;
+            for(int dr = -1; dr <= 1; dr++) {
+                for(int dc = -1; dc <= 1; dc++) {
+                    if((dr == 0 && dc == 0)) continue;
+                    nr = row + dr;
+                    nc = col + dc;
+                    if(nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                        index = nr * cols + nc;
+                        neighbor = list.get(index);
+                        if(visited.get(neighbor) == false) {
+                            visited.put(neighbor, true);
+                            if(neighbor.getClientProperty("zero") != null) {
+                                zerosButtons.add(neighbor);
+                            } else if(neighbor.getClientProperty("number") != null) {
+                                vNumber.add(neighbor);
                             }
                         }
                     }
                 }
             }
         }
-        return false;
+        openNumbersAfterBFS(vNumber, image);
+    }
+
+    private void openNumbersAfterBFS(ArrayList<JButton> vNumber, URL image) {
+        for(int i = 0; i < vNumber.size(); i++) {
+            Integer count = (Integer)vNumber.get(i).getClientProperty("number");
+            image = getImageNumber(count, buttonSize);
+            vNumber.get(i).setIcon(new ImageIcon(image));
+            vNumber.get(i).putClientProperty("unopened", null);
+        }
     }
 
     private URL getImageNumber(int count, int size) {
