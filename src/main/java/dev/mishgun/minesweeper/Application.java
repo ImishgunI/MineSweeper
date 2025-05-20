@@ -85,7 +85,7 @@ public class Application extends JFrame {
                     } else if(b.getClientProperty("zero") != null) {
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
                         openFillsWithBFS(b, list, rows, cols, imageURL);                        
-                    } else {
+                    } else if(b.getClientProperty("number") == null){
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
                         b.setIcon(new ImageIcon(imageURL));
                         b.putClientProperty("empty_fill", true);
@@ -270,6 +270,7 @@ public class Application extends JFrame {
             Integer count = (Integer)vNumber.get(i).getClientProperty("number_unopened");
             image = getImageNumber(count, buttonSize);
             vNumber.get(i).setIcon(new ImageIcon(image));
+            vNumber.get(i).putClientProperty("number", true);
             vNumber.get(i).putClientProperty("unopened", null);
         }
     }
