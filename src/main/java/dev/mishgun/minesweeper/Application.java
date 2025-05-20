@@ -74,12 +74,14 @@ public class Application extends JFrame {
                         b.setIcon(new ImageIcon(imageURL));
                         b.putClientProperty("mine_failed", true);
                         b.putClientProperty("unopened", null);
-                    } else if(b.getClientProperty("number") != null) {
-                        Integer count = (Integer) b.getClientProperty("number");
+                    } else if(b.getClientProperty("number_unopened") != null) {
+                        Integer count = (Integer) b.getClientProperty("number_unopened");
                         imageURL = getImageNumber(count, buttonSize);
                         b.setIcon(new ImageIcon(imageURL));
+                        b.putClientProperty("number", true);
                         b.putClientProperty("empty_fill", null);
                         b.putClientProperty("unopened", null);
+                        b.putClientProperty("number_unopened", null);
                     } else if(b.getClientProperty("zero") != null) {
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
                         openFillsWithBFS(b, list, rows, cols, imageURL);                        
@@ -90,7 +92,7 @@ public class Application extends JFrame {
                         b.putClientProperty("unopened", null);
                     }
                 } else if(SwingUtilities.isRightMouseButton(e)) {
-                    if(b.getClientProperty("flag") == null) {
+                    if(b.getClientProperty("flag") == null && b.getClientProperty("number") == null) {
                         if(b.getClientProperty("empty_fill") == null || (b.getClientProperty("unopened") != null 
                             && b.getClientProperty("mine") != null)) {
                                 imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag" + size);
@@ -191,7 +193,7 @@ public class Application extends JFrame {
             if(b.getClientProperty("mine") == null) {
                 int count = calculateNumberForButton(row, col, rows, cols, list);
                 if(count != 0) {
-                    b.putClientProperty("number", count);
+                    b.putClientProperty("number_unopened", count);
                 } else {
                     b.putClientProperty("zero", 0);
                 }
@@ -252,7 +254,7 @@ public class Application extends JFrame {
                             visited.put(neighbor, true);
                             if(neighbor.getClientProperty("zero") != null) {
                                 zerosButtons.add(neighbor);
-                            } else if(neighbor.getClientProperty("number") != null) {
+                            } else if(neighbor.getClientProperty("number_unopened") != null) {
                                 vNumber.add(neighbor);
                             }
                         }
@@ -265,7 +267,7 @@ public class Application extends JFrame {
 
     private void openNumbersAfterBFS(ArrayList<JButton> vNumber, URL image) {
         for(int i = 0; i < vNumber.size(); i++) {
-            Integer count = (Integer)vNumber.get(i).getClientProperty("number");
+            Integer count = (Integer)vNumber.get(i).getClientProperty("number_unopened");
             image = getImageNumber(count, buttonSize);
             vNumber.get(i).setIcon(new ImageIcon(image));
             vNumber.get(i).putClientProperty("unopened", null);
