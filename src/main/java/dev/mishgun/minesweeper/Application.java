@@ -72,11 +72,6 @@ public class Application extends JFrame {
                     if(b.getClientProperty("mine") != null) {
                         imageURL = getClass().getClassLoader().getResource("images/fail" + size);
                         b.setIcon(new ImageIcon(imageURL));
-                        // try {
-                        //     Thread.sleep();
-                        // } catch(Exception ex) {
-                        //     System.err.println(ex.getMessage());
-                        // }
                         b.putClientProperty("mine_failed", true);
                         b.putClientProperty("unopened", null);
                     } else if(b.getClientProperty("number") != null) {
