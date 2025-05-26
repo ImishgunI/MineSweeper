@@ -4,7 +4,7 @@ public class MineSweeper
 {
     public static void main( String[] args )
     {
-        Application app = new Application();
+        MainLogic app = new MainLogic();
         app.drawArea(8, 8);
     }
 }
