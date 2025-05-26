@@ -54,6 +54,7 @@ public class MainLogic extends JFrame {
             button.putClientProperty("unopened", true);
             buttons.add(button);
         }
+
         ArrayList <JButton> shuffled = addBombAtButton(buttons, rows, cols);
         addButtonsAtPanel(shuffled, gridPanel);
         addNumbersAtGrid(shuffled, rows, cols);
@@ -64,8 +65,14 @@ public class MainLogic extends JFrame {
     }
 
     /*
-     * TODO: Создать отдельный класс, в котором была бы функция обработки первого клика,
-     * туда бы запихнули функцию setOpeNFIlls и далее и далее по плану
+     * @TODO: Создать отдельный класс, в котором была бы функция обработки первого клика,
+     * туда бы запихнули функцию setOpeNFIlls и далее по плану
+     * 
+     * @TODO: Создать функцию добавляющую кнопки на экран и дальше происходит считывание этих кнопок
+     * и верхняя функция
+     * 
+     * Потом изменить добавление мин и перемешку массива, разделить их
+     * 
      */
 
     private void addActionForButton(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols) {
