@@ -67,6 +67,7 @@ public class MainLogic extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e) && b.getClientProperty("flag") == null) {
                     if(!firstClickedHappened) {
+                        setEmptyFillsAtStart(b, list, size, cols, rows);
                         int index = list.indexOf(b);
                         buttons = addBombAtButton(buttons, rows, cols, index);
                         addNumbersAtGrid(buttons, rows, cols);
@@ -121,6 +122,24 @@ public class MainLogic extends JFrame {
                 }
             }
         });
+    }
+
+    private void setEmptyFillsAtStart(JButton b, ArrayList<JButton> list, String imageSize, int cols, int rows) {
+        int i = list.indexOf(b);
+        int row = i / cols;
+        int col = i % cols;
+        for(int dr = -1; dr <= 1; dr++) {
+            for(int dc = -1; dc <= 1; dc++) {
+                int nr = row + dr;
+                int nc = col + dc;
+
+                if(nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                    int index = nr * cols + nc;
+                    b = list.get(index);
+                    b.putClientProperty("save", true);
+                }
+            }
+        }
     }
 
     private int setButtonSize(int rows, int cols) {
