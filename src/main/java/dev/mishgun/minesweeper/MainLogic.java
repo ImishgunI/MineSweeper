@@ -28,6 +28,8 @@ public class MainLogic extends JFrame {
     private ArrayList<JButton> buttons = new ArrayList<JButton>();
     private HashSet<Integer> hs = new HashSet<>();
     private int buttonSize;
+    private boolean firstClickedHappened = false;
+    private JButton firstClick = null;
 
     public MainLogic() {
         setTitle("MineSweeper");
@@ -44,7 +46,7 @@ public class MainLogic extends JFrame {
             cols * (buttonSize + gapBetweenButton),
             rows * (buttonSize + gapBetweenButton)
         ));
-        gridPanel.revalidate();
+        //gridPanel.revalidate();
         String size = chooseAnImage(buttonSize);
         imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
         for(int i = 0; i < rows * cols; i++) {
@@ -54,40 +56,36 @@ public class MainLogic extends JFrame {
             button.putClientProperty("unopened", true);
             buttons.add(button);
         }
-
-        ArrayList <JButton> shuffled = addBombAtButton(buttons, rows, cols);
-        addButtonsAtPanel(shuffled, gridPanel);
-        addNumbersAtGrid(shuffled, rows, cols);
-        setActionOnButton(shuffled, buttonSize, rows, cols);
+        addButtonsAtPanel(buttons, gridPanel);
+        setActionOnButton(buttons, buttonSize, rows, cols);
         panel.add(gridPanel);
         pack();
-        setVisible(true);
+        setVisible(true); 
     }
-
-    /*
-     * @TODO: Создать отдельный класс, в котором была бы функция обработки первого клика,
-     * туда бы запихнули функцию setOpeNFIlls и далее по плану
-     * 
-     * @TODO: Создать функцию добавляющую кнопки на экран и дальше происходит считывание этих кнопок
-     * и верхняя функция
-     * 
-     * Потом изменить добавление мин и перемешку массива, разделить их
-     * 
-     */
-
+    
     private void addActionForButton(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols) {
         String size = chooseAnImage(buttonSize);
         b.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e) && b.getClientProperty("flag") == null) {
-                    if(b.getClientProperty("mine") != null) {
+                    if(!firstClickedHappened) {
+                        firstClick = b;
+                        buttons = addBombAtButton(buttons, rows, cols);
+                        addNumbersAtGrid(buttons, rows, cols);
+                        imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
+                        b.setIcon(new ImageIcon(imageURL));
+                        b.putClientProperty("empty_fill", true);
+                        b.putClientProperty("unopened", null);
+                        openFillsWithBFS(b, list, rows, cols, imageURL);
+                        firstClickedHappened = true;
+                    } else if(b.getClientProperty("mine") != null) {
                         imageURL = getClass().getClassLoader().getResource("images/fail" + size);
                         b.setIcon(new ImageIcon(imageURL));
                         b.putClientProperty("mine_failed", true);
                         b.putClientProperty("unopened", null);
                     } else if(b.getClientProperty("number_unopened") != null) {
-                        Integer count = (Integer) b.getClientProperty("number_unopened");
+                           Integer count = (Integer) b.getClientProperty("number_unopened");
                         imageURL = getImageNumber(count, buttonSize);
                         b.setIcon(new ImageIcon(imageURL));
                         b.putClientProperty("number", true);
@@ -102,7 +100,7 @@ public class MainLogic extends JFrame {
                         b.setIcon(new ImageIcon(imageURL));
                         b.putClientProperty("empty_fill", true);
                         b.putClientProperty("unopened", null);
-                    } else {
+                        } else {
                         setEmptyFillsAtStart(b, list, size, cols, rows);
                     }
                 } else if(SwingUtilities.isRightMouseButton(e)) {
@@ -213,6 +211,7 @@ public class MainLogic extends JFrame {
 
     private void addButtonsAtPanel(ArrayList<JButton> buttons, JPanel gridPanel) {
         for(JButton b : buttons) {
+            b.putClientProperty("empty_fill",  true);
             gridPanel.add(b);
         }
     }
