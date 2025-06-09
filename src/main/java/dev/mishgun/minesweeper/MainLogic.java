@@ -7,8 +7,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -29,7 +27,6 @@ public class MainLogic extends JFrame {
     private HashSet<Integer> hs = new HashSet<>();
     private int buttonSize;
     private boolean firstClickedHappened = false;
-    private JButton firstClick = null;
 
     public MainLogic() {
         setTitle("MineSweeper");
@@ -62,7 +59,7 @@ public class MainLogic extends JFrame {
         pack();
         setVisible(true); 
     }
-    
+
     private void addActionForButton(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols) {
         String size = chooseAnImage(buttonSize);
         b.addMouseListener(new MouseAdapter() {
@@ -70,8 +67,8 @@ public class MainLogic extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e) && b.getClientProperty("flag") == null) {
                     if(!firstClickedHappened) {
-                        firstClick = b;
-                        buttons = addBombAtButton(buttons, rows, cols);
+                        int index = list.indexOf(b);
+                        buttons = addBombAtButton(buttons, rows, cols, index);
                         addNumbersAtGrid(buttons, rows, cols);
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
                         b.setIcon(new ImageIcon(imageURL));
@@ -100,8 +97,6 @@ public class MainLogic extends JFrame {
                         b.setIcon(new ImageIcon(imageURL));
                         b.putClientProperty("empty_fill", true);
                         b.putClientProperty("unopened", null);
-                        } else {
-                        setEmptyFillsAtStart(b, list, size, cols, rows);
                     }
                 } else if(SwingUtilities.isRightMouseButton(e)) {
                     if(b.getClientProperty("flag") == null && b.getClientProperty("number") == null) {
@@ -153,48 +148,23 @@ public class MainLogic extends JFrame {
         String size_70 = "_70.svg.png";
         return (buttonSize == 30) ? size_30 : (buttonSize == 50) ? size_50 : (buttonSize == 70) ? size_70 : size_50;
     }
-
-    private void setEmptyFillsAtStart(JButton b, ArrayList<JButton> list, String imageSize, int cols, int rows) {
-        int i = list.indexOf(b);
-        int row = i / cols;
-        int col = i % cols;
-        for(int dr = -1; dr <= 1; dr++) {
-            for(int dc = -1; dc <= 1; dc++) {
-                int nr = row + dr;
-                int nc = col + dc;
-
-                if(nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                    int index = nr * cols + nc;
-                    b = list.get(index);
-                    imageURL = getClass().getClassLoader().getResource("images/empty_fill" + imageSize);
-                    b.setIcon(new ImageIcon(imageURL));
-                    b.putClientProperty("empty_fill", true);
-                    b.putClientProperty("save", true);
-                }
-            }
-        }
-    }
-
-    private ArrayList<JButton> addBombAtButton(ArrayList<JButton> list, int rows, int cols) throws IndexOutOfBoundsException { 
+    private ArrayList<JButton> addBombAtButton(ArrayList<JButton> list, int rows, int cols, int skipIndex) throws IndexOutOfBoundsException { 
         float difficult = (float)(0.156 + (0.206 - 0.156) * ((rows * cols - 64) / (480.0 - 64)));
         if(rows == 16) difficult = (float)0.156;
-        ArrayList<JButton> shuffled = new ArrayList<JButton>(Arrays.asList(new JButton[rows * cols]));
-        Collections.copy(shuffled, list);
-        Collections.shuffle(shuffled);
         Random r = new Random();
         byte amount = (byte)(Math.round(rows * cols * difficult));
         for (int i = 0; i < amount; i++) {
             int index = getRandomNumber(r, list.size() - 1);
             if(checkRandomIndex(index) == false) index = getRandomNumber(r, list.size() - 1);
-            JButton b = shuffled.get(index);
-            if(b.getClientProperty("save") == null) {
+            JButton b = list.get(index);
+            if(b.getClientProperty("save") == null && index != skipIndex) {
                 b.putClientProperty("mine", true);
-                shuffled.set(index, b);
+                list.set(index, b);
             } else {
                 continue;
             }
         }
-        return shuffled;
+        return list;
     }
 
     private int getRandomNumber(Random r, int size) {
