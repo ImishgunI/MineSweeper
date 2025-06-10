@@ -1,8 +1,11 @@
 package dev.mishgun.minesweeper;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
@@ -31,7 +34,7 @@ public class MainLogic extends JFrame {
     public MainLogic() {
         setTitle("MineSweeper");
         setVisible(true);
-        panel = new JPanel(new FlowLayout());
+        panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.DARK_GRAY);
         setContentPane(panel);
     }
@@ -39,25 +42,40 @@ public class MainLogic extends JFrame {
     public void drawArea(int rows, int cols) {
         buttonSize = setButtonSize(rows, cols);
         JPanel gridPanel = new JPanel(new GridLayout(rows, cols, gapBetweenButton, gapBetweenButton));
-        gridPanel.setPreferredSize(new Dimension(
-            cols * (buttonSize + gapBetweenButton),
-            rows * (buttonSize + gapBetweenButton)
-        ));
-        //gridPanel.revalidate();
+        gridPanel.revalidate();
         String size = chooseAnImage(buttonSize);
         imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
         for(int i = 0; i < rows * cols; i++) {
             JButton button = new JButton();
-            button.setPreferredSize(new Dimension(buttonSize, buttonSize));
-            button.setIcon(new ImageIcon(imageURL));
+            resizeButtonImage(button, imageURL);
             button.putClientProperty("unopened", true);
             buttons.add(button);
         }
         addButtonsAtPanel(buttons, gridPanel);
         setActionOnButton(buttons, buttonSize, rows, cols);
-        panel.add(gridPanel);
+        panel.add(gridPanel, BorderLayout.CENTER);
         pack();
-        setVisible(true); 
+        setMinimumSize(new Dimension(
+            cols * (buttonSize + gapBetweenButton),
+            rows * (buttonSize + gapBetweenButton)
+        ));
+        repaint();
+        setVisible(true);
+    }
+
+    private void resizeButtonImage(JButton b, URL imageUrl) {
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                updateIcons(b,imageUrl);
+            }
+        });
+    }
+
+    private void updateIcons(JButton b, URL imageUrl) {
+        ImageIcon icon = new ImageIcon(imageUrl);
+        Image image = icon.getImage().getScaledInstance(b.getWidth(), b.getHeight(), Image.SCALE_SMOOTH);
+        b.setIcon(new ImageIcon(image));
     }
 
     private void addActionForButton(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols) {
@@ -72,20 +90,20 @@ public class MainLogic extends JFrame {
                         buttons = addBombAtButton(buttons, rows, cols, index);
                         addNumbersAtGrid(buttons, rows, cols);
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
-                        b.setIcon(new ImageIcon(imageURL));
+                        updateIcons(b, imageURL);
                         b.putClientProperty("empty_fill", true);
                         b.putClientProperty("unopened", null);
                         openFillsWithBFS(b, list, rows, cols, imageURL);
                         firstClickedHappened = true;
                     } else if(b.getClientProperty("mine") != null) {
                         imageURL = getClass().getClassLoader().getResource("images/fail" + size);
-                        b.setIcon(new ImageIcon(imageURL));
+                        updateIcons(b, imageURL);
                         b.putClientProperty("mine_failed", true);
                         b.putClientProperty("unopened", null);
                     } else if(b.getClientProperty("number_unopened") != null) {
                            Integer count = (Integer) b.getClientProperty("number_unopened");
                         imageURL = getImageNumber(count, buttonSize);
-                        b.setIcon(new ImageIcon(imageURL));
+                        updateIcons(b, imageURL);
                         b.putClientProperty("number", true);
                         b.putClientProperty("empty_fill", null);
                         b.putClientProperty("unopened", null);
@@ -95,7 +113,7 @@ public class MainLogic extends JFrame {
                         openFillsWithBFS(b, list, rows, cols, imageURL);
                     } else if(b.getClientProperty("number") == null){
                         imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
-                        b.setIcon(new ImageIcon(imageURL));
+                        updateIcons(b, imageURL);
                         b.putClientProperty("empty_fill", true);
                         b.putClientProperty("unopened", null);
                     }
@@ -104,7 +122,7 @@ public class MainLogic extends JFrame {
                         if(b.getClientProperty("empty_fill") == null || (b.getClientProperty("unopened") != null 
                             && b.getClientProperty("mine") != null)) {
                                 imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag" + size);
-                                b.setIcon(new ImageIcon(imageURL));
+                                updateIcons(b, imageURL);
                                 b.putClientProperty("flag", true);
                                 b.putClientProperty("unopened", null);
                                 b.putClientProperty("mine_failed", null);
@@ -113,7 +131,7 @@ public class MainLogic extends JFrame {
                         if(b.getClientProperty("empty_fill") == null && b.getClientProperty("unopened") == null
                             && (b.getClientProperty("mine") == null || b.getClientProperty("mine_failed") == null) && b.getClientProperty("flag") != null){
                             imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
-                            b.setIcon(new ImageIcon(imageURL));
+                            updateIcons(b, imageURL);
                             b.putClientProperty("unopened", true);
                             b.putClientProperty("flag", null);
                             b.putClientProperty("empty_fill", null);
@@ -261,7 +279,7 @@ public class MainLogic extends JFrame {
         while(!zerosButtons.isEmpty()) {
             JButton b = zerosButtons.poll();
             if(b.getClientProperty("zero") != null) {
-                b.setIcon(new ImageIcon(image));
+                updateIcons(b, imageURL);
                 b.putClientProperty("empty_fill", true);
                 b.putClientProperty("zero", null);
                 b.putClientProperty("unopened", null);
@@ -296,7 +314,7 @@ public class MainLogic extends JFrame {
         for(int i = 0; i < vNumber.size(); i++) {
             Integer count = (Integer)vNumber.get(i).getClientProperty("number_unopened");
             image = getImageNumber(count, buttonSize);
-            vNumber.get(i).setIcon(new ImageIcon(image));
+            updateIcons(vNumber.get(i), imageURL);
             vNumber.get(i).putClientProperty("number", true);
             vNumber.get(i).putClientProperty("unopened", null);
         }
