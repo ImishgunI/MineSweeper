@@ -84,62 +84,86 @@ public class MainLogic extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e) && b.getClientProperty("flag") == null) {
-                    if(!firstClickedHappened) {
-                        setEmptyFillsAtStart(b, list, size, cols, rows);
-                        int index = list.indexOf(b);
-                        buttons = addBombAtButton(buttons, rows, cols, index);
-                        addNumbersAtGrid(buttons, rows, cols);
-                        imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
-                        updateIcons(b, imageURL);
-                        b.putClientProperty("empty_fill", true);
-                        b.putClientProperty("unopened", null);
-                        openFillsWithBFS(b, list, rows, cols, imageURL);
-                        firstClickedHappened = true;
-                    } else if(b.getClientProperty("mine") != null) {
-                        imageURL = getClass().getClassLoader().getResource("images/fail" + size);
-                        updateIcons(b, imageURL);
-                        b.putClientProperty("mine_failed", true);
-                        b.putClientProperty("unopened", null);
-                    } else if(b.getClientProperty("number_unopened") != null) {
-                           Integer count = (Integer) b.getClientProperty("number_unopened");
-                        imageURL = getImageNumber(count, buttonSize);
-                        updateIcons(b, imageURL);
-                        b.putClientProperty("number", true);
-                        b.putClientProperty("empty_fill", null);
-                        b.putClientProperty("unopened", null);
-                        b.putClientProperty("number_unopened", null);
-                    } else if(b.getClientProperty("zero") != null) {
-                        imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
-                        openFillsWithBFS(b, list, rows, cols, imageURL);
-                    } else if(b.getClientProperty("number") == null){
-                        imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
-                        updateIcons(b, imageURL);
-                        b.putClientProperty("empty_fill", true);
-                        b.putClientProperty("unopened", null);
-                    }
+                    leftMouseAction(b, buttonSize, list, rows, cols, size);
                 } else if(SwingUtilities.isRightMouseButton(e)) {
-                    if(b.getClientProperty("flag") == null && b.getClientProperty("number_unopened") == null) {
-                        if(b.getClientProperty("empty_fill") == null || (b.getClientProperty("unopened") != null 
-                            && b.getClientProperty("mine") != null)) {
-                                imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag" + size);
-                                updateIcons(b, imageURL);
-                                b.putClientProperty("flag", true);
-                                b.putClientProperty("unopened", null);
-                                b.putClientProperty("mine_failed", null);
-                        }
-                    } else if(b.getClientProperty("flag") != null) {
-                        if(b.getClientProperty("empty_fill") == null && b.getClientProperty("unopened") == null
-                            && (b.getClientProperty("mine") == null || b.getClientProperty("mine_failed") == null)){
-                            imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
-                            updateIcons(b, imageURL);
-                            b.putClientProperty("unopened", true);
-                            b.putClientProperty("flag", null);
-                            b.putClientProperty("empty_fill", null);
-                        }
-                    }
+                    rightMouseAction(b, buttonSize, list, rows, cols, size);
                 }
             }
         });
+    }
+
+    private void leftMouseAction(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols, String size) {
+        if(!firstClickedHappened) {
+
+            setEmptyFillsAtStart(b, list, size, cols, rows);
+            int index = list.indexOf(b);
+            buttons = addBombAtButton(buttons, rows, cols, index);
+            addNumbersAtGrid(buttons, rows, cols);
+            imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
+            updateIcons(b, imageURL);
+            b.putClientProperty("empty_fill", true);
+            b.putClientProperty("unopened", null);
+            openFillsWithBFS(b, list, rows, cols, imageURL);
+            firstClickedHappened = true;
+
+        } else if(b.getClientProperty("mine") != null) {
+
+            imageURL = getClass().getClassLoader().getResource("images/fail" + size);
+            updateIcons(b, imageURL);
+            b.putClientProperty("mine_failed", true);
+            b.putClientProperty("unopened", null);
+
+        } else if(b.getClientProperty("number_unopened") != null) {
+
+            Integer count = (Integer) b.getClientProperty("number_unopened");
+            imageURL = getImageNumber(count, buttonSize);
+            updateIcons(b, imageURL);
+            b.putClientProperty("number", true);
+            b.putClientProperty("empty_fill", null);
+            b.putClientProperty("unopened", null);
+            b.putClientProperty("number_unopened", null);
+
+        } else if(b.getClientProperty("zero") != null) {
+
+            imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
+            openFillsWithBFS(b, list, rows, cols, imageURL);
+
+        } else if(b.getClientProperty("number") == null){
+
+            imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
+            updateIcons(b, imageURL);
+            b.putClientProperty("empty_fill", true);
+            b.putClientProperty("unopened", null);
+
+        }
+    }
+
+    private void rightMouseAction(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols, String size) {
+        if(b.getClientProperty("flag") == null && b.getClientProperty("number") == null) {
+
+            if((b.getClientProperty("unopened") != null && b.getClientProperty("mine") != null) 
+                || b.getClientProperty("number_unopened") != null || b.getClientProperty("zero") != null) {
+
+                    imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag" + size);
+                    updateIcons(b, imageURL);
+                    b.putClientProperty("flag", true);
+                    b.putClientProperty("unopened", null);
+                    b.putClientProperty("mine_failed", null);
+
+            }
+        } else if(b.getClientProperty("flag") != null) {
+
+            if(b.getClientProperty("empty_fill") == null && b.getClientProperty("unopened") == null
+                && (b.getClientProperty("mine") == null || b.getClientProperty("mine_failed") == null)){
+
+                imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
+                updateIcons(b, imageURL);
+                b.putClientProperty("unopened", true);
+                b.putClientProperty("flag", null);
+                b.putClientProperty("empty_fill", null);
+
+            }
+        }
     }
 
     private void setEmptyFillsAtStart(JButton b, ArrayList<JButton> list, String imageSize, int cols, int rows) {
