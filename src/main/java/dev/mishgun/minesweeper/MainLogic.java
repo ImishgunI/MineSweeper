@@ -118,7 +118,7 @@ public class MainLogic extends JFrame {
                         b.putClientProperty("unopened", null);
                     }
                 } else if(SwingUtilities.isRightMouseButton(e)) {
-                    if(b.getClientProperty("flag") == null && b.getClientProperty("number") == null) {
+                    if(b.getClientProperty("flag") == null && b.getClientProperty("number_unopened") == null) {
                         if(b.getClientProperty("empty_fill") == null || (b.getClientProperty("unopened") != null 
                             && b.getClientProperty("mine") != null)) {
                                 imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag" + size);
@@ -129,7 +129,7 @@ public class MainLogic extends JFrame {
                         }
                     } else if(b.getClientProperty("flag") != null) {
                         if(b.getClientProperty("empty_fill") == null && b.getClientProperty("unopened") == null
-                            && (b.getClientProperty("mine") == null || b.getClientProperty("mine_failed") == null) && b.getClientProperty("flag") != null){
+                            && (b.getClientProperty("mine") == null || b.getClientProperty("mine_failed") == null)){
                             imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
                             updateIcons(b, imageURL);
                             b.putClientProperty("unopened", true);
@@ -192,13 +192,11 @@ public class MainLogic extends JFrame {
         byte amount = (byte)(Math.round(rows * cols * difficult));
         for (int i = 0; i < amount; i++) {
             int index = getRandomNumber(r, list.size() - 1);
-            if(checkRandomIndex(index) == false) index = getRandomNumber(r, list.size() - 1);
+            while(checkRandomIndex(index, skipIndex, list) != true) index = getRandomNumber(r, list.size() - 1);
             JButton b = list.get(index);
             if(b.getClientProperty("save") == null && index != skipIndex) {
                 b.putClientProperty("mine", true);
                 list.set(index, b);
-            } else {
-                continue;
             }
         }
         return list;
@@ -208,8 +206,9 @@ public class MainLogic extends JFrame {
         return r.nextInt(size);
     }
 
-    private boolean checkRandomIndex(int index) {
-        if(hs.contains(index)) {
+    private boolean checkRandomIndex(int index, int skipIndex, ArrayList<JButton> list) {
+        JButton b = list.get(index);
+        if(hs.contains(index) || index == skipIndex || b.getClientProperty("save") != null) {
             return false;
         }
         hs.add(index);
