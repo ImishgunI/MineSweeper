@@ -153,16 +153,12 @@ public class MainLogic extends JFrame {
             }
         } else if(b.getClientProperty("flag") != null) {
 
-            if(b.getClientProperty("empty_fill") == null && b.getClientProperty("unopened") == null
-                && (b.getClientProperty("mine") == null || b.getClientProperty("mine_failed") == null)){
+            imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
+            updateIcons(b, imageURL);
+            b.putClientProperty("unopened", true);
+            b.putClientProperty("flag", null);
+            b.putClientProperty("empty_fill", null);
 
-                imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
-                updateIcons(b, imageURL);
-                b.putClientProperty("unopened", true);
-                b.putClientProperty("flag", null);
-                b.putClientProperty("empty_fill", null);
-
-            }
         }
     }
 
