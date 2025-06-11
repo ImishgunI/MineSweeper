@@ -1,9 +1,13 @@
 package dev.mishgun.minesweeper;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.ComponentOrientation;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -16,11 +20,16 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 public class MainLogic extends JFrame {
     private final int gapBetweenButton = 2;
@@ -30,16 +39,23 @@ public class MainLogic extends JFrame {
     private HashSet<Integer> hs = new HashSet<>();
     private int buttonSize;
     private boolean firstClickedHappened = false;
+    private JPanel sidePanel = new JPanel();
+    private JLabel timer = new JLabel("00:00");
+    private JLabel minesAmount = new JLabel();
+    private JButton pause = new JButton("Pause");
+    private static int seconds = 0;
 
     public MainLogic() {
         setTitle("MineSweeper");
         setVisible(true);
         panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.DARK_GRAY);
+        sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
         setContentPane(panel);
     }
 
     public void drawArea(int rows, int cols) {
+        setupSidePanel();
         buttonSize = setButtonSize(rows, cols);
         JPanel gridPanel = new JPanel(new GridLayout(rows, cols, gapBetweenButton, gapBetweenButton));
         gridPanel.revalidate();
@@ -54,6 +70,7 @@ public class MainLogic extends JFrame {
         addButtonsAtPanel(buttons, gridPanel);
         setActionOnButton(buttons, buttonSize, rows, cols);
         panel.add(gridPanel, BorderLayout.CENTER);
+        panel.add(sidePanel, BorderLayout.EAST);
         pack();
         setMinimumSize(new Dimension(
             cols * (buttonSize + gapBetweenButton),
@@ -63,6 +80,44 @@ public class MainLogic extends JFrame {
         setVisible(true);
     }
 
+    private void setupSidePanel() {
+        timerIconUpdate();
+        mineCounterFlagUpdate();
+        sidePanel.add(timer);
+        sidePanel.add(minesAmount);
+        sidePanel.add(pause);
+    }
+
+    private void timerIconUpdate() {
+        imageURL = getClass().getClassLoader().getResource("images/timer.png");
+        ImageIcon icon = new ImageIcon(imageURL);
+        Image img = icon.getImage().getScaledInstance(icon.getIconWidth() / 15, icon.getIconHeight() / 15, Image.SCALE_SMOOTH);
+        timer.setIcon(new ImageIcon(img));
+        timer.setHorizontalTextPosition(SwingConstants.CENTER);
+        timer.setVerticalTextPosition(SwingConstants.BOTTOM);
+        timer.setIconTextGap(7);
+    }
+
+    private void mineCounterFlagUpdate() {
+        imageURL = getClass().getClassLoader().getResource("images/flag.png");
+        ImageIcon icon = new ImageIcon(imageURL);
+        Image img = icon.getImage().getScaledInstance(icon.getIconWidth() / 15, icon.getIconHeight() / 15, Image.SCALE_SMOOTH);
+        minesAmount.setIcon(new ImageIcon(img));
+    }
+
+    private void setupTimer() {
+        Timer time = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent var1) {
+                ++seconds;
+                int minutes = seconds / 60;
+                int second = seconds % 60;
+                timer.setText(String.format("%02d:%02d", minutes, second));
+            }
+        });
+        time.start();
+    }
+    
     private void resizeButtonImage(JButton b, URL imageUrl) {
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -105,6 +160,7 @@ public class MainLogic extends JFrame {
             b.putClientProperty("unopened", null);
             openFillsWithBFS(b, list, rows, cols, imageURL);
             firstClickedHappened = true;
+            setupTimer();
 
         } else if(b.getClientProperty("mine") != null) {
 
