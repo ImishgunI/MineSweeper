@@ -2,6 +2,7 @@ package dev.mishgun.minesweeper;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -36,27 +37,41 @@ public class MainLogic extends JFrame {
     private URL imageURL;
     private ArrayList<JButton> buttons = new ArrayList<JButton>();
     private HashSet<Integer> hs = new HashSet<>();
-    private int buttonSize;
+    private int buttonSize, rows, cols;
     private boolean firstClickedHappened = false;
     private JPanel sidePanel = new JPanel();
     private JLabel timer = new JLabel("00:00");
     private JLabel minesAmount = new JLabel();
     private JButton pause = new JButton("Pause");
     private static int seconds = 0;
+    private JPanel gridWrapper;
 
-    public MainLogic() {
+    public MainLogic(int rows, int cols) {
+        this.rows = rows;
+        this.cols = cols;
         setTitle("MineSweeper");
         setVisible(true);
         panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.DARK_GRAY);
+        gridWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 400, getVGap()));
         sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
+        gridWrapper.setAlignmentY(JComponent.CENTER_ALIGNMENT);
         setContentPane(panel);
     }
 
-    public void drawArea(int rows, int cols) {
+    public void drawArea() {
         setupSidePanel();
-        buttonSize = setButtonSize(rows, cols);
+        try {
+            buttonSize = setButtonSize(rows, cols);
+        } catch(Exception e) {
+            e.getMessage();
+        }
+        int alignmentCols = gridPanelSizeAlignment(buttonSize);
         JPanel gridPanel = new JPanel(new GridLayout(rows, cols, gapBetweenButton, gapBetweenButton));
+        gridPanel.setPreferredSize(new Dimension(
+            (rows + 2) * (buttonSize + gapBetweenButton), 
+            (cols + alignmentCols)  * (buttonSize + gapBetweenButton)
+        ));
         gridPanel.revalidate();
         String size = chooseAnImage(buttonSize);
         imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
@@ -68,15 +83,49 @@ public class MainLogic extends JFrame {
         }
         addButtonsAtPanel(buttons, gridPanel);
         setActionOnButton(buttons, buttonSize, rows, cols);
-        panel.add(gridPanel, BorderLayout.CENTER);
+        gridWrapper.add(gridPanel);
+        panel.add(gridWrapper, BorderLayout.CENTER);
         panel.add(sidePanel, BorderLayout.EAST);
         pack();
-        setMinimumSize(new Dimension(
-            cols * (buttonSize + gapBetweenButton),
-            rows * (buttonSize + gapBetweenButton)
-        ));
         repaint();
         setVisible(true);
+    }
+
+    private int getVGap() {
+        int Vgap = 0;
+        try {
+            buttonSize = setButtonSize(rows, cols);
+        } catch(Exception e) {
+            e.getMessage();
+        }
+        switch (buttonSize) {
+            case 70:
+                Vgap = 450;
+                break;
+            case 50:
+                Vgap = 250;
+                break;
+            case 15:
+                Vgap = 130;
+                break;
+            default:
+                Vgap = 250;
+                break;
+        }
+        return Vgap;
+    }
+
+    private int gridPanelSizeAlignment(int buttonSize) {
+        switch (buttonSize) {
+            case 70:
+                return 2;
+            case 50:
+                return 2;
+            case 15:
+                return 50;
+            default:
+                return 2;
+        }
     }
 
     private void setupSidePanel() {
@@ -253,7 +302,7 @@ public class MainLogic extends JFrame {
         }
     }
 
-    private int setButtonSize(int rows, int cols) {
+    private int setButtonSize(int rows, int cols) throws Exception {
         int buttonSize = 0;
         switch (rows + cols) {
             case 16:
@@ -263,11 +312,18 @@ public class MainLogic extends JFrame {
                 buttonSize = 50;
                 break;
             case 46:
-                buttonSize = 30;
+                buttonSize = 15;
                 break;
             default:
-                System.err.println("This size aren't supporting");
-                break;
+                if(rows + cols < 16 && rows + cols > 8) {
+                    buttonSize = 70;
+                } else if (rows + cols > 16 && rows + cols < 46){
+                    buttonSize = 30;
+                } else if (rows < 3 || cols < 3) {
+                    throw new Exception("Area cannot be less then then 9");
+                } else {
+                    throw new Exception("Area cannot be bigger then 99");
+                }
         }
         return buttonSize;
     }
