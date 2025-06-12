@@ -18,9 +18,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -80,9 +82,27 @@ public class MainLogic extends JFrame {
     private void setupSidePanel() {
         timerIconUpdate();
         mineCounterFlagUpdate();
-        sidePanel.add(timer);
-        sidePanel.add(minesAmount);
-        sidePanel.add(pause);
+        Box b1 = Box.createVerticalBox();
+        timer.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+        b1.add(timer);
+        b1.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+        sidePanel.add(Box.createVerticalStrut(100));
+        sidePanel.add(b1);
+
+        Box b2 = Box.createVerticalBox();
+        minesAmount.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+        b2.add(minesAmount);
+        b2.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+        sidePanel.add(Box.createVerticalStrut(100));
+        sidePanel.add(b2);
+
+        Box b3 = Box.createVerticalBox();
+        pause.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+        b3.add(pause);
+        b3.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+        sidePanel.add(Box.createVerticalStrut(100));
+        sidePanel.add(b3);
+        sidePanel.add(Box.createVerticalGlue());
     }
 
     private void timerIconUpdate() {
