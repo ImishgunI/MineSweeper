@@ -53,7 +53,7 @@ public class MainLogic extends JFrame {
         setVisible(true);
         panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.DARK_GRAY);
-        gridWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, getHGap(), getVGap()));
+        gridWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 400, 200));
         sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
         gridWrapper.setAlignmentY(JComponent.CENTER_ALIGNMENT);
         setContentPane(panel);
@@ -61,19 +61,15 @@ public class MainLogic extends JFrame {
 
     public void drawArea() {
         setupSidePanel();
-        try {
-            buttonSize = setButtonSize(rows, cols);
-        } catch(Exception e) {
-            e.getMessage();
-        }
+        buttonSize = setButtonSize(rows, cols);
         JPanel gridPanel = new JPanel(new GridLayout(rows, cols, gapBetweenButton, gapBetweenButton));
         gridPanel.setPreferredSize(new Dimension(
-            (rows) * (buttonSize + gapBetweenButton), 
-            (cols + setAlignmentCols(buttonSize)) * (buttonSize + gapBetweenButton)
+            buttonSize * cols + (cols - 1) * gapBetweenButton,
+            buttonSize * rows + (rows - 1) * gapBetweenButton
         ));
+        gridPanel.setMaximumSize(gridPanel.getPreferredSize());
         gridPanel.revalidate();
-        String size = chooseAnImage(buttonSize);
-        imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
+        imageURL = getClass().getClassLoader().getResource("images/unopened_square_32.svg.png");
         for(int i = 0; i < rows * cols; i++) {
             JButton button = new JButton();
             resizeButtonImage(button, imageURL);
@@ -88,61 +84,6 @@ public class MainLogic extends JFrame {
         pack();
         repaint();
         setVisible(true);
-    }
-
-    private int getHGap() {
-        int Hgap = 0;
-        try {
-            buttonSize = setButtonSize(rows, cols);
-        } catch(Exception e) {
-            e.getMessage();
-        }
-        switch (buttonSize) {
-            case 30:
-                Hgap = 400;
-                break;
-            case 15:
-                Hgap = 200;
-                break;
-            case 50:
-                Hgap = 250;
-            default:
-                Hgap = 400;
-                break;
-        }
-        return Hgap;
-    }
-
-    private int getVGap() {
-        int Vgap = 0;
-        try {
-            buttonSize = setButtonSize(rows, cols);
-        } catch(Exception e) {
-            e.getMessage();
-        }
-        switch (buttonSize) {
-            case 70:
-                Vgap = 450;
-                break;
-            case 50:
-                Vgap = 250;
-                break;
-            case 15:
-                Vgap = 130;
-                break;
-            default:
-                Vgap = 250;
-                break;
-        }
-        return Vgap;
-    }
-
-    private int setAlignmentCols(int buttonSize) {
-        int alignment = 0;
-        if(buttonSize == 15) {
-            alignment = 50;
-        }
-        return alignment;
     }
 
     private void setupSidePanel() {
@@ -211,33 +152,33 @@ public class MainLogic extends JFrame {
     }
 
     private void updateIcons(JButton b, URL imageUrl) {
+        b.setPreferredSize(new Dimension(buttonSize, buttonSize));
         ImageIcon icon = new ImageIcon(imageUrl);
         Image image = icon.getImage().getScaledInstance(b.getWidth(), b.getHeight(), Image.SCALE_SMOOTH);
         b.setIcon(new ImageIcon(image));
     }
 
     private void addActionForButton(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols) {
-        String size = chooseAnImage(buttonSize);
         b.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e) && b.getClientProperty("flag") == null) {
-                    leftMouseAction(b, buttonSize, list, rows, cols, size);
+                    leftMouseAction(b, buttonSize, list, rows, cols);
                 } else if(SwingUtilities.isRightMouseButton(e)) {
-                    rightMouseAction(b, buttonSize, list, rows, cols, size);
+                    rightMouseAction(b, buttonSize, list, rows, cols);
                 }
             }
         });
     }
 
-    private void leftMouseAction(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols, String size) {
+    private void leftMouseAction(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols) {
         if(!firstClickedHappened) {
 
-            setEmptyFillsAtStart(b, list, size, cols, rows);
+            setEmptyFillsAtStart(b, list, cols, rows);
             int index = list.indexOf(b);
             buttons = addBombAtButton(buttons, rows, cols, index);
             addNumbersAtGrid(buttons, rows, cols);
-            imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
+            imageURL = getClass().getClassLoader().getResource("images/empty_fill_32.svg.png");
             updateIcons(b, imageURL);
             b.putClientProperty("empty_fill", true);
             b.putClientProperty("unopened", null);
@@ -247,7 +188,7 @@ public class MainLogic extends JFrame {
 
         } else if(b.getClientProperty("mine") != null) {
 
-            imageURL = getClass().getClassLoader().getResource("images/fail" + size);
+            imageURL = getClass().getClassLoader().getResource("images/fail_32.svg.png");
             updateIcons(b, imageURL);
             b.putClientProperty("mine_failed", true);
             b.putClientProperty("unopened", null);
@@ -255,7 +196,7 @@ public class MainLogic extends JFrame {
         } else if(b.getClientProperty("number_unopened") != null) {
 
             Integer count = (Integer) b.getClientProperty("number_unopened");
-            imageURL = getImageNumber(count, buttonSize);
+            imageURL = getImageNumber(count);
             updateIcons(b, imageURL);
             b.putClientProperty("number", true);
             b.putClientProperty("empty_fill", null);
@@ -264,12 +205,12 @@ public class MainLogic extends JFrame {
 
         } else if(b.getClientProperty("zero") != null) {
 
-            imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
+            imageURL = getClass().getClassLoader().getResource("images/empty_fill_32.svg.png");
             openFillsWithBFS(b, list, rows, cols, imageURL);
 
         } else if(b.getClientProperty("number") == null){
 
-            imageURL = getClass().getClassLoader().getResource("images/empty_fill" + size);
+            imageURL = getClass().getClassLoader().getResource("images/empty_fill_32.svg.png");
             updateIcons(b, imageURL);
             b.putClientProperty("empty_fill", true);
             b.putClientProperty("unopened", null);
@@ -277,13 +218,13 @@ public class MainLogic extends JFrame {
         }
     }
 
-    private void rightMouseAction(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols, String size) {
+    private void rightMouseAction(JButton b, final int buttonSize, ArrayList<JButton> list, int rows, int cols) {
         if(b.getClientProperty("flag") == null && b.getClientProperty("number") == null) {
 
             if((b.getClientProperty("unopened") != null && b.getClientProperty("mine") != null) 
                 || b.getClientProperty("number_unopened") != null || b.getClientProperty("zero") != null) {
 
-                    imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag" + size);
+                    imageURL = getClass().getClassLoader().getResource("images/Minesweeper_flag_32.svg.png");
                     updateIcons(b, imageURL);
                     b.putClientProperty("flag", true);
                     b.putClientProperty("unopened", null);
@@ -292,7 +233,7 @@ public class MainLogic extends JFrame {
             }
         } else if(b.getClientProperty("flag") != null) {
 
-            imageURL = getClass().getClassLoader().getResource("images/unopened_square" + size);
+            imageURL = getClass().getClassLoader().getResource("images/unopened_square_32.svg.png");
             updateIcons(b, imageURL);
             b.putClientProperty("unopened", true);
             b.putClientProperty("flag", null);
@@ -301,7 +242,7 @@ public class MainLogic extends JFrame {
         }
     }
 
-    private void setEmptyFillsAtStart(JButton b, ArrayList<JButton> list, String imageSize, int cols, int rows) {
+    private void setEmptyFillsAtStart(JButton b, ArrayList<JButton> list, int cols, int rows) {
         int i = list.indexOf(b);
         int row = i / cols;
         int col = i % cols;
@@ -319,31 +260,15 @@ public class MainLogic extends JFrame {
         }
     }
 
-    private int setButtonSize(int rows, int cols) throws Exception {
-        int buttonSize = 0;
-        switch (rows + cols) {
-            case 16:
-                buttonSize = 70;
-                break;
-            case 32:
-                buttonSize = 50;
-                break;
-            case 46:
-                buttonSize = 15;
-                break;
-            default:
-                throw new Exception("Area cannot be bigger then 99");
+    private int setButtonSize(int rows, int cols) {
+        if(rows + cols > 46) {
+            System.err.println("Area cannot have more then 99 mines");
+            System.exit(1);
         }
-        return buttonSize;
+        return 32;
     }
 
-    private String chooseAnImage(final int buttonSize) {
-        String size_30 = "_30.svg.png";
-        String size_50 = "_50.svg.png";
-        String size_70 = "_70.svg.png";
-        return (buttonSize == 30) ? size_30 : (buttonSize == 50) ? size_50 : (buttonSize == 70) ? size_70 : size_50;
-    }
-    private ArrayList<JButton> addBombAtButton(ArrayList<JButton> list, int rows, int cols, int skipIndex) throws IndexOutOfBoundsException { 
+    private ArrayList<JButton> addBombAtButton(ArrayList<JButton> list, int rows, int cols, int skipIndex) { 
         float difficult = (float)(0.156 + (0.206 - 0.156) * ((rows * cols - 64) / (480.0 - 64)));
         if(rows == 16) difficult = (float)0.156;
         Random r = new Random();
@@ -470,44 +395,15 @@ public class MainLogic extends JFrame {
     private void openNumbersAfterBFS(ArrayList<JButton> vNumber, URL image) {
         for(int i = 0; i < vNumber.size(); i++) {
             Integer count = (Integer)vNumber.get(i).getClientProperty("number_unopened");
-            image = getImageNumber(count, buttonSize);
+            image = getImageNumber(count);
             updateIcons(vNumber.get(i), imageURL);
             vNumber.get(i).putClientProperty("number", true);
             vNumber.get(i).putClientProperty("unopened", null);
         }
     }
 
-    private URL getImageNumber(int count, int size) {
-        String len = chooseAnImage(size);
-        switch (count) {
-            case 1:
-                imageURL = getClass().getClassLoader().getResource("images/number_1" + len);
-                break;
-            case 2:
-                imageURL = getClass().getClassLoader().getResource("images/number_2" + len);
-                break;
-            case 3:
-                imageURL = getClass().getClassLoader().getResource("images/number_3" + len);
-                break;
-            case 4:
-                imageURL = getClass().getClassLoader().getResource("images/number_4" + len);
-                break;
-            case 5:
-                imageURL = getClass().getClassLoader().getResource("images/number_5" + len);
-                break;
-            case 6:
-                imageURL = getClass().getClassLoader().getResource("images/number_6" + len);
-                break;
-            case 7:
-                imageURL = getClass().getClassLoader().getResource("images/number_7" + len);
-                break;
-            case 8:
-                imageURL = getClass().getClassLoader().getResource("images/number_8" + len);
-                break;
-            default:
-                System.err.println("Incorrect count: " + count);
-                break;
-        }
-        return imageURL;
+    private URL getImageNumber(int count) {
+       imageURL = getClass().getClassLoader().getResource("images/number_" + count + "_32.svg.png");
+       return imageURL;
     }
 }
