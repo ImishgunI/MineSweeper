@@ -53,7 +53,7 @@ public class MainLogic extends JFrame {
         setVisible(true);
         panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.DARK_GRAY);
-        gridWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 400, getVGap()));
+        gridWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, getHGap(), getVGap()));
         sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
         gridWrapper.setAlignmentY(JComponent.CENTER_ALIGNMENT);
         setContentPane(panel);
@@ -66,11 +66,10 @@ public class MainLogic extends JFrame {
         } catch(Exception e) {
             e.getMessage();
         }
-        int alignmentCols = gridPanelSizeAlignment(buttonSize);
         JPanel gridPanel = new JPanel(new GridLayout(rows, cols, gapBetweenButton, gapBetweenButton));
         gridPanel.setPreferredSize(new Dimension(
-            (rows + 2) * (buttonSize + gapBetweenButton), 
-            (cols + alignmentCols)  * (buttonSize + gapBetweenButton)
+            (rows) * (buttonSize + gapBetweenButton), 
+            (cols + setAlignmentCols(buttonSize)) * (buttonSize + gapBetweenButton)
         ));
         gridPanel.revalidate();
         String size = chooseAnImage(buttonSize);
@@ -89,6 +88,29 @@ public class MainLogic extends JFrame {
         pack();
         repaint();
         setVisible(true);
+    }
+
+    private int getHGap() {
+        int Hgap = 0;
+        try {
+            buttonSize = setButtonSize(rows, cols);
+        } catch(Exception e) {
+            e.getMessage();
+        }
+        switch (buttonSize) {
+            case 30:
+                Hgap = 400;
+                break;
+            case 15:
+                Hgap = 200;
+                break;
+            case 50:
+                Hgap = 250;
+            default:
+                Hgap = 400;
+                break;
+        }
+        return Hgap;
     }
 
     private int getVGap() {
@@ -115,17 +137,12 @@ public class MainLogic extends JFrame {
         return Vgap;
     }
 
-    private int gridPanelSizeAlignment(int buttonSize) {
-        switch (buttonSize) {
-            case 70:
-                return 2;
-            case 50:
-                return 2;
-            case 15:
-                return 50;
-            default:
-                return 2;
+    private int setAlignmentCols(int buttonSize) {
+        int alignment = 0;
+        if(buttonSize == 15) {
+            alignment = 50;
         }
+        return alignment;
     }
 
     private void setupSidePanel() {
@@ -315,15 +332,7 @@ public class MainLogic extends JFrame {
                 buttonSize = 15;
                 break;
             default:
-                if(rows + cols < 16 && rows + cols > 8) {
-                    buttonSize = 70;
-                } else if (rows + cols > 16 && rows + cols < 46){
-                    buttonSize = 30;
-                } else if (rows < 3 || cols < 3) {
-                    throw new Exception("Area cannot be less then then 9");
-                } else {
-                    throw new Exception("Area cannot be bigger then 99");
-                }
+                throw new Exception("Area cannot be bigger then 99");
         }
         return buttonSize;
     }
