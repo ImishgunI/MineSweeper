@@ -54,7 +54,7 @@ public class MainLogic extends JFrame {
         panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.DARK_GRAY);
         gridWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 400, 200));
-        sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
+        sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.X_AXIS));
         gridWrapper.setAlignmentY(JComponent.CENTER_ALIGNMENT);
         setContentPane(panel);
     }
@@ -80,7 +80,7 @@ public class MainLogic extends JFrame {
         setActionOnButton(buttons, buttonSize, rows, cols);
         gridWrapper.add(gridPanel);
         panel.add(gridWrapper, BorderLayout.CENTER);
-        panel.add(sidePanel, BorderLayout.EAST);
+        panel.add(sidePanel, BorderLayout.NORTH);
         pack();
         repaint();
         setVisible(true);
@@ -89,27 +89,19 @@ public class MainLogic extends JFrame {
     private void setupSidePanel() {
         timerIconUpdate();
         mineCounterFlagUpdate();
-        Box b1 = Box.createVerticalBox();
+        Box b1 = Box.createHorizontalBox();
         timer.setAlignmentX(JComponent.CENTER_ALIGNMENT);
         b1.add(timer);
         b1.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-        sidePanel.add(Box.createVerticalStrut(100));
+        b1.add(Box.createHorizontalStrut(100));
         sidePanel.add(b1);
 
-        Box b2 = Box.createVerticalBox();
+        Box b2 = Box.createHorizontalBox();
         minesAmount.setAlignmentX(JComponent.CENTER_ALIGNMENT);
         b2.add(minesAmount);
         b2.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-        sidePanel.add(Box.createVerticalStrut(100));
+        b2.add(Box.createHorizontalStrut(100));
         sidePanel.add(b2);
-
-        Box b3 = Box.createVerticalBox();
-        pause.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-        b3.add(pause);
-        b3.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-        sidePanel.add(Box.createVerticalStrut(100));
-        sidePanel.add(b3);
-        sidePanel.add(Box.createVerticalGlue());
     }
 
     private void timerIconUpdate() {
